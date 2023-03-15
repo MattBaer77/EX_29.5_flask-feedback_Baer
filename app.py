@@ -15,4 +15,8 @@ toolbar = DebugToolbarExtension(app)
 
 @app.route('/')
 def home():
-    return "<h1>Home</h1>"
+    return redirect("/register")
+
+@app.route('/register', methods=['GET', 'POST'])
+def register_get():
+    return render_template("register.html")
