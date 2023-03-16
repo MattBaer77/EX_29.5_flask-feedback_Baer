@@ -91,27 +91,31 @@ def logout_user():
     flash("Goodbye!", "info")
     return redirect('/')
 
-@app.route('/secret')
-def secret():
+# @app.route('/secret')
+# def secret():
 
-    if user_not_logged_in():
-        return redirect('/login')
+#     if user_not_logged_in():
+#         return redirect('/login')
 
-    return render_template("secret.html")
+#     return render_template("secret.html")
 
 @app.route('/users/<username>')
 def user_details(username):
 
-    if user_not_logged_in():
+    if user_not_logged_in(username):
+        print('Not Logged In')
         return redirect('/login')
 
     user = User.query.get_or_404(username)
+
+    # raise
+
     return render_template("user-details.html", user=user)
 
 @app.route('/users/<username>/delete', methods=["POST"])
 def delete_user(username):
 
-    if user_not_logged_in():
+    if user_not_logged_in(username):
         return redirect('/login')
 
     user = User.query.get_or_404(username)
@@ -128,7 +132,7 @@ def delete_user(username):
 @app.route('/users/<username>/feedback/add', methods=['GET', 'POST'])
 def add_feedback(username):
     
-    if user_not_logged_in():
+    if user_not_logged_in(username):
         return redirect('/login')
 
     form = FeedbackForm()
@@ -153,11 +157,12 @@ def add_feedback(username):
 
 @app.route('/feedback/<int:id>/update', methods=['GET', 'POST'])
 def update_feedback(id):
-    
-    if user_not_logged_in():
-        return redirect('/login')
 
     feedback = Feedback.query.get_or_404(id)
+
+    if user_not_logged_in(feedback.username):
+        return redirect('/login')
+
     form = FeedbackForm(obj=feedback)
 
     if form.validate_on_submit():
