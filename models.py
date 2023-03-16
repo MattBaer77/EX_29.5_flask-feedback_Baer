@@ -66,6 +66,8 @@ class User(db.Model):
         else:
             return False
 
+    feedback = db.relationship('Feedback', backref='user', cascade='all, delete-orphan')
+
 class Feedback(db.Model):
 
     __tablename__ = 'feedback'
@@ -76,7 +78,7 @@ class Feedback(db.Model):
         autoincrement=True
     )
 
-    text = db.Column(
+    title = db.Column(
         db.String(50),
         nullable=False
     )
@@ -90,5 +92,3 @@ class Feedback(db.Model):
         db.String(20),
         db.ForeignKey('users.username', ondelete='CASCADE')
     )
-
-    user = db.relationship('User', backref='feedback')

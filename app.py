@@ -1,8 +1,9 @@
 from flask import Flask, render_template, redirect, session, flash
 from flask_debugtoolbar import DebugToolbarExtension
-from models import connect_db, db, User
-from forms import UserRegistrationForm, LoginForm
+from models import connect_db, db, User, Feedback
+from forms import UserRegistrationForm, LoginForm, FeedbackForm
 from sqlalchemy.exc import IntegrityError
+from user_not_logged_in import *
 
 app = Flask(__name__)
 app.config["SQLALCHEMY_DATABASE_URI"] = "postgresql:///flask_feedback"
@@ -51,7 +52,7 @@ def register():
 
         flash('Welcome! Successfully Created Your Account!', "success")
 
-        return redirect('/secret')
+        return redirect(f'/users/{username}')
 
     else:
 
@@ -76,14 +77,13 @@ def login():
         if login_user:
             flash(f"Welcome Back, {login_user.username}!", "primary")
             session['username'] = login_user.username
-            return redirect('/secret')
+            return redirect(f'/users/{username}')
 
         else:
             form.username.errors = ['Invalid username/password.']
 
     return render_template('login.html', form=form)
 
-    return render_template("login.html", form=form)
 
 @app.route('/logout')
 def logout_user():
@@ -94,8 +94,7 @@ def logout_user():
 @app.route('/secret')
 def secret():
 
-    if 'username' not in session:
-        flash(f"Please login first!", "danger")
+    if user_not_logged_in():
         return redirect('/login')
 
     return render_template("secret.html")
@@ -103,11 +102,51 @@ def secret():
 @app.route('/users/<username>')
 def user_details(username):
 
-    if 'username' not in session:
-        flash(f"Please login first!", "danger")
+    if user_not_logged_in():
         return redirect('/login')
 
     user = User.query.get_or_404(username)
-    
     return render_template("user-details.html", user=user)
 
+@app.route('/users/<username>/delete', methods=["POST"])
+def delete_user(username):
+
+    if user_not_logged_in():
+        return redirect('/login')
+
+    user = User.query.get_or_404(username)
+
+    if user.username == session['username']:
+        db.session.delete(user)
+        db.session.commit()
+        flash("User deleted!", "info")
+        return redirect('/login')
+
+    flash("You don't have permission to do that!", "danger")
+    return redirect('/login')
+
+@app.route('/users/<username>/feedback/add', methods=['GET', 'POST'])
+def add_feedback(username):
+    
+    if user_not_logged_in():
+        return redirect('/login')
+
+    form = FeedbackForm()
+
+    if form.validate_on_submit():
+        title = form.title.data
+        content = form.content.data
+
+        new_feedback = Feedback(title=title, content=content, username=username)
+
+        db.session.add(new_feedback)
+
+        try:
+            db.session.commit()
+        except IntegrityError:
+            form.feedback.errors.append('Could not save your feedback')
+            return render_template('/login')
+
+        return redirect(f'/users/{username}')
+
+    return render_template('feedback.html', form=form)

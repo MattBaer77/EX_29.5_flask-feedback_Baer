@@ -9,4 +9,25 @@
 <h4>{{user.first_name}}</h4>
 <h4>{{user.last_name}}</h4>
 
+<form action="{{user.username}}/delete" method="POST">
+    <button class="btn btn-danger">Delete</button>
+</form>
+
+<div>
+
+{% for feedback in user.feedback %}
+
+    <div>
+        <div>
+            {{feedback.title}}
+        </div>
+        <p>
+            {{feedback.content}}
+        </p>
+    </div>
+
+{% endfor %}
+
+</div>
+
 {% endblock %}
