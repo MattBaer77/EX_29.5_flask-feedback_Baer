@@ -20,7 +20,7 @@ def home():
     return redirect("/register")
 
 @app.route('/register', methods=['GET', 'POST'])
-def register_get():
+def register():
     """
     GET - Show a form to register a new user
     POST - Handle a form to register a new user
@@ -57,6 +57,57 @@ def register_get():
 
         return render_template("register.html", form=form)
 
+
+@app.route('/login', methods=['GET','POST'])
+def login():
+    """
+    GET - Show a form that when submitted will login a user. Form accepts username and password
+    POST - Process login form, ensuring the user is authenticated and going to /secret if authenticated
+    """
+
+    form = LoginForm()
+
+    if form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
+
+        login_user = User.authenticate(username, password)
+
+        if login_user:
+            flash(f"Welcome Back, {login_user.username}!", "primary")
+            session['username'] = login_user.username
+            return redirect('/secret')
+
+        else:
+            form.username.errors = ['Invalid username/password.']
+
+    return render_template('login.html', form=form)
+
+    return render_template("login.html", form=form)
+
+@app.route('/logout')
+def logout_user():
+    session.pop('username')
+    flash("Goodbye!", "info")
+    return redirect('/')
+
 @app.route('/secret')
 def secret():
-    return "<h1> You are at the secret route </h1>"
+
+    if 'username' not in session:
+        flash(f"Please login first!", "danger")
+        return redirect('/login')
+
+    return render_template("secret.html")
+
+@app.route('/users/<username>')
+def user_details(username):
+
+    if 'username' not in session:
+        flash(f"Please login first!", "danger")
+        return redirect('/login')
+
+    user = User.query.get_or_404(username)
+    
+    return render_template("user-details.html", user=user)
+
