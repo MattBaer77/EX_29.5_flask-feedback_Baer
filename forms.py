@@ -15,6 +15,7 @@ class UserRegistrationForm(FlaskForm):
     """
 
     form_name = 'User Registration'
+    submit_text = 'Register User'
 
     username = StringField("Username", validators=[InputRequired()])
     password = PasswordField("Password", validators=[InputRequired()])
@@ -25,6 +26,7 @@ class UserRegistrationForm(FlaskForm):
 class LoginForm(FlaskForm):
 
     form_name = 'Login Form'
+    submit_text = 'Login'
 
     username = StringField("Username", validators=[InputRequired()])
     password = PasswordField("Password", validators=[InputRequired()])
@@ -33,6 +35,7 @@ class LoginForm(FlaskForm):
 class FeedbackForm(FlaskForm):
 
     form_name = "Add Feedback"
+    submit_text = 'Save Feedback'
 
     title = StringField("Title", validators=[InputRequired()])
     content = StringField("Content", validators=[InputRequired()], widget=TextArea())

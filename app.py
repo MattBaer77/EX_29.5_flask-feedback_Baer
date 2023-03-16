@@ -150,3 +150,22 @@ def add_feedback(username):
         return redirect(f'/users/{username}')
 
     return render_template('feedback.html', form=form)
+
+@app.route('/feedback/<int:id>/update', methods=['GET', 'POST'])
+def update_feedback(id):
+    
+    if user_not_logged_in():
+        return redirect('/login')
+
+    feedback = Feedback.query.get_or_404(id)
+    form = FeedbackForm(obj=feedback)
+
+    if form.validate_on_submit():
+        feedback.title = form.title.data
+        feedback.content = form.content.data
+
+        db.session.commit()
+
+        return redirect(f'/users/{feedback.username}')
+
+    return render_template('feedback.html', form=form)
